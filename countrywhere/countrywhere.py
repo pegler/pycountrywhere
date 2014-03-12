@@ -135,9 +135,10 @@ class tzwhere(object):
         latSet = set(latTzOptions.keys());
         lngTzOptions = self.timezoneLongitudeShortcuts.get(math.floor(longitude / self.SHORTCUT_DEGREES_LONGITUDE) * self.SHORTCUT_DEGREES_LONGITUDE, {})
         lngSet = set(lngTzOptions.keys())
-        possibleTimezones = lngSet.intersection(latSet);
+        possibleTimezones = lngSet.intersection(latSet)
+        
         if possibleTimezones:
-            if False and len(possibleTimezones) == 1:
+            if len(possibleTimezones) == 1:
                 return possibleTimezones.pop()
             else:
                 for tzname in possibleTimezones:
@@ -177,3 +178,5 @@ if __name__ == "__main__":
     print w.tzNameAt(float(61.17), float(-150.02)) #Anchorage, AK
     print w.tzNameAt(float(44.12), float(-123.22)) #Eugene, OR
     print w.tzNameAt(float(42.652647), float(-73.756371)) #Albany, NY
+    print w.tzNameAt(49.2166667,-2.1325)
+    print w.tzNameAt(40.679, -73.984)

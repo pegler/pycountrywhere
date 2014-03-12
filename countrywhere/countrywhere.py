@@ -112,16 +112,16 @@ class tzwhere(object):
             for tzname in self.timezoneLongitudeShortcuts[degree].keys():
                 self.timezoneLongitudeShortcuts[degree][tzname] = tuple(self.timezoneLongitudeShortcuts[degree][tzname])
 
-    def _point_inside_polygon(self, x, y, poly):
+    def _point_inside_polygon(self, x, y, poly, buffer=0):
         n = len(poly)
         inside =False
 
         p1x, p1y = poly[0]['lng'], poly[0]['lat']
         for i in range(n+1):
             p2x,p2y = poly[i % n]['lng'], poly[i % n]['lat']
-            if y > min(p1y,p2y):
-                if y <= max(p1y,p2y):
-                    if x <= max(p1x,p2x):
+            if y+buffer > min(p1y,p2y):
+                if y-buffer <= max(p1y,p2y):
+                    if x-buffer <= max(p1x,p2x):
                         if p1y != p2y:
                             xinters = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
                         if p1x == p2x or x <= xinters:
@@ -135,18 +135,20 @@ class tzwhere(object):
         latSet = set(latTzOptions.keys());
         lngTzOptions = self.timezoneLongitudeShortcuts.get(math.floor(longitude / self.SHORTCUT_DEGREES_LONGITUDE) * self.SHORTCUT_DEGREES_LONGITUDE, {})
         lngSet = set(lngTzOptions.keys())
-        possibleTimezones = lngSet.intersection(latSet)
+        possibleTimezones = lngSet.intersection(latSet);
         
         if possibleTimezones:
             if len(possibleTimezones) == 1:
                 return possibleTimezones.pop()
             else:
-                for tzname in possibleTimezones:
-                    polyIndices = set(latTzOptions[tzname]).intersection(set(lngTzOptions[tzname]));
-                    for polyIndex in polyIndices:
-                        poly = self.timezoneNamesToPolygons[tzname][polyIndex];
-                        if self._point_inside_polygon(longitude, latitude, poly):
-                            return tzname
+                for buffer_multiplier in xrange(20):
+                    buffer = .05*buffer_multiplier
+                    for tzname in possibleTimezones:
+                        polyIndices = set(latTzOptions[tzname]).intersection(set(lngTzOptions[tzname]));
+                        for polyIndex in polyIndices:
+                            poly = self.timezoneNamesToPolygons[tzname][polyIndex]
+                            if self._point_inside_polygon(longitude, latitude, poly, buffer=buffer):
+                                return tzname
 
 if __name__ == "__main__":
     import argparse
@@ -173,10 +175,11 @@ if __name__ == "__main__":
     end = datetime.datetime.now()
     print 'Initialized in: ',
     print end-start
-    print w.tzNameAt(float(35.295953), float(-89.662186)) #Arlington, TN
-    print w.tzNameAt(float(33.58), float(-85.85)) #Memphis, TN
-    print w.tzNameAt(float(61.17), float(-150.02)) #Anchorage, AK
-    print w.tzNameAt(float(44.12), float(-123.22)) #Eugene, OR
-    print w.tzNameAt(float(42.652647), float(-73.756371)) #Albany, NY
+    #print w.tzNameAt(float(35.295953), float(-89.662186)) #Arlington, TN
+    #print w.tzNameAt(float(33.58), float(-85.85)) #Memphis, TN
+    #print w.tzNameAt(float(61.17), float(-150.02)) #Anchorage, AK
+    #print w.tzNameAt(float(44.12), float(-123.22)) #Eugene, OR
+    #print w.tzNameAt(float(42.652647), float(-73.756371)) #Albany, NY
     print w.tzNameAt(49.2166667,-2.1325)
     print w.tzNameAt(40.679, -73.984)
+    print w.tzNameAt(32.743, -117.249)
